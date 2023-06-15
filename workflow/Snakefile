@@ -1,0 +1,358 @@
+# #####################################################################
+#   A Snakemake pipeline for variant calling from illumina sequences
+# #####################################################################
+
+
+# dependencies
+# *********************************************************************
+# configuration file
+configfile: "config/config.yaml"
+
+
+# global wild cards of sample and matepair list
+# - this assumes that all fastq files have the SampleName_R1.fastq.gz and SampleName_R2.fastq.gz format
+# - If not, they might have the SampleName_S1_L001_R1_001.fastq.gz and SampleName_S1_L001_R2_001.fastq.gz format
+# - In this case, rename the files running the following command in your terminal, at the top level of the project:
+# python3 workflow/rename_fastq_files.py
+(SAMPLES,) = glob_wildcards(config["input"]["fastq"] + "{sample}_R1.fastq.gz")
+
+
+# a list of all output files
+# *********************************************************************
+rule all:
+    input:
+        # ------------------------------------
+        # gather_genome_data
+        config["gather_genome_data"]["fasta"],
+        config["gather_genome_data"]["fasta_idx"],
+        config["gather_genome_data"]["gff"],
+        # ------------------------------------
+        # trim_fastq
+        expand(config["fastp"]["dir"] + "{sample}_R1.fastq.gz", sample=SAMPLES),
+        expand(config["fastp"]["dir"] + "{sample}_R2.fastq.gz", sample=SAMPLES),
+        expand(config["fastp"]["dir"] + "{sample}.json", sample=SAMPLES),
+        expand(config["fastp"]["dir"] + "{sample}.html", sample=SAMPLES),
+        # ------------------------------------
+        # bwa_index_genome
+        config["bwa"]["genome_index"],
+        # ------------------------------------
+        # bwa_map_reads
+        expand(config["bwa"]["dir"] + "{sample}.bam", sample=SAMPLES),
+        expand(config["bwa"]["dir"] + "{sample}.bam.bai", sample=SAMPLES),
+        # # ------------------------------------
+        # samtools_mapping_stats
+        expand(
+            config["mapping_stats"]["dir"] + "{sample}.bam.idxstats.tsv",
+            sample=SAMPLES,
+        ),
+        expand(
+            config["mapping_stats"]["dir"] + "{sample}.bam.flagstats.tsv",
+            sample=SAMPLES,
+        ),
+        # ------------------------------------
+        # bcftools_variant_calling
+        expand(config["bcftools"]["dir"] + "{sample}.vcf.gz", sample=SAMPLES),
+        # ------------------------------------
+        # snpEff_annotate
+        expand(config["snpEff"]["dir"] + "{sample}.vcf.gz", sample=SAMPLES),
+        # ------------------------------------
+        # snpsift_
+        expand(config["snpSift"]["dir"] + "{sample}.allele.tsv", sample=SAMPLES),
+        # expand(config["snpSift"]["dir"] + "{sample}.allele.freq.tsv", sample=SAMPLES),
+
+
+# genome data - download genome data
+# *********************************************************************
+rule gather_genome_data:
+    input:
+        genome=config["input"]["genome"]["fasta"],
+        gff=config["input"]["genome"]["gff"],
+    output:
+        genome=config["gather_genome_data"]["fasta"],
+        genome_index=config["gather_genome_data"]["fasta_idx"],
+        gff=config["gather_genome_data"]["gff"],
+    conda:
+        "envs/samtools.yaml"
+    shell:
+        # cp - copy genome fasta file from snpEff database location
+        # samtools faidx - generate fasta index file
+        # cp - copy annotation file from snpEff database location
+        """
+        echo "##############################################"
+        echo "--- Gathering Genome Files (FASTA/GFF/BED) ---"
+        echo "##############################################"
+        
+        cp -f {input.genome} {output.genome}
+
+        samtools faidx {output.genome}
+
+        cp -f {input.gff} {output.gff}
+        """
+
+
+# fastp - clip illumina adapters, paired end mode
+# *********************************************************************
+rule trim_fastq_files:
+    input:
+        in1=config["input"]["fastq"] + "{sample}_R1.fastq.gz",
+        in2=config["input"]["fastq"] + "{sample}_R2.fastq.gz",
+    output:
+        out1=config["fastp"]["dir"] + "{sample}_R1.fastq.gz",
+        out2=config["fastp"]["dir"] + "{sample}_R2.fastq.gz",
+        json=config["fastp"]["dir"] + "{sample}.json",
+        html=config["fastp"]["dir"] + "{sample}.html",
+    params:
+        threads=config["extra"]["threads"],
+        min_len=config["fastp"]["min_len"],
+    log:
+        config["fastp"]["dir"] + "log/{sample}.log",
+    conda:
+        "envs/fastp.yaml"
+    shell:
+        """
+        echo "##############################################"
+        echo "--------------- Running FastP ----------------"
+        echo "##############################################"
+
+        fastp \
+            --thread {params.threads} \
+            --detect_adapter_for_pe \
+            --qualified_quality_phred 20 \
+            --cut_tail --cut_tail_mean_quality 20 \
+            --length_required {params.min_len} \
+            --in1 {input.in1} \
+            --in2 {input.in2} \
+            --out1 {output.out1} --out2 {output.out2} \
+            --json {output.json} --html {output.html} \
+            2> {log}
+            """
+
+
+# #####################################################################
+#                      BCFTOOLS VARIANT CALLING
+# # ###################################################################
+
+
+# bwa - generate bwa genome-index files
+# *********************************************************************
+rule bwa_index_genome:
+    input:
+        genome=rules.gather_genome_data.output.genome,
+    output:
+        genome_index=touch(config["bwa"]["genome_index"]),
+    log:
+        config["bwa"]["dir"] + "log/bwa.index/index.log",
+    conda:
+        "envs/bwa.yaml"
+    shell:
+        """
+        echo "##############################################"
+        echo "----------------- BWA Index ------------------"
+        echo "##############################################"
+
+        bwa index -p {output.genome_index} {input.genome} 2> {log}
+        """
+
+
+# bwa/samtools/sambamba: [-a bwtsw|is]
+# *********************************************************************
+rule bwa_map_reads:
+    input:
+        genome=rules.gather_genome_data.output.genome,
+        genome_index=rules.bwa_index_genome.output.genome_index,
+        fastqR1=rules.trim_fastq_files.output.out1,
+        fastqR2=rules.trim_fastq_files.output.out2,
+    output:
+        bam=config["bwa"]["dir"] + "{sample}.bam",
+        index=config["bwa"]["dir"] + "{sample}.bam.bai",
+    params:
+        threads=config["extra"]["threads"],
+        read_groups=r"-R '@RG\tID:{sample}\tSM:{sample}'",
+        mapping_qual=config["bwa"]["mapping_qual"],
+        exclude_flag=config["bwa"]["exclude_flag"],
+    log:
+        bwa=config["bwa"]["dir"] + "log/bwa.mem/{sample}.log",
+        samblaster=config["bwa"]["dir"] + "log/samblaster/{sample}.log",
+        fixmate=config["bwa"]["dir"] + "log/samtools/{sample}.fixmate.log",
+        sort=config["bwa"]["dir"] + "log/samtools/{sample}.fixmate.log",
+    conda:
+        "envs/bwa.yaml"
+    shell:
+        """
+        echo "##############################################"
+        echo "- Running BWA MEM and Samtools (Sort & Index -"
+        echo "##############################################"
+
+        bwa mem -M \
+            -t {params.threads} \
+            {params.read_groups} \
+            {input.genome_index} \
+            {input.fastqR1} {input.fastqR2} \
+            2> {log.bwa} |\
+        samblaster -M \
+            --removeDups \
+            --addMateTags \
+            2> {log.samblaster} |\
+        samtools fixmate \
+            --threads {params.threads} \
+            --output-fmt sam \
+            /dev/stdin \
+            /dev/stdout \
+            2> {log.fixmate} |\
+        samtools sort \
+            --threads {params.threads} \
+            -o {output.bam} |\
+            2> {log.sort}
+        
+        samtools index {output.bam} {output.index}
+        """
+
+
+# get mapping-quality statistics from BAM file
+# - samtools idxstats - counts for 13 categories based primarily on bit flags in the FLAG field
+# - samtools flagstats - stats for the bam index file
+# *********************************************************************
+rule samtools_mapping_stats:
+    input:
+        bam=rules.bwa_map_reads.output.bam,
+    output:
+        idxstats=config["mapping_stats"]["dir"] + "{sample}.bam.idxstats.tsv",
+        flagstats=config["mapping_stats"]["dir"] + "{sample}.bam.flagstats.tsv",
+    params:
+        threads=config["extra"]["threads"],
+    conda:
+        "envs/samtools.yaml"
+    shell:
+        """
+        echo "##############################################"
+        echo "---- Running Samtools idxstats & flagstats ----"
+        echo "##############################################"
+        
+        samtools idxstats \
+            --threads {params.threads} \
+            {input.bam} > {output.idxstats}
+
+        samtools flagstats \
+            --threads {params.threads} \
+            {input.bam} --output-fmt tsv > {output.flagstats}
+        """
+
+
+# bcftools - variant calling
+# *********************************************************************
+rule bcftools_variant_calling:
+    input:
+        genome=rules.gather_genome_data.output.genome,
+        bam=rules.bwa_map_reads.output.bam,
+        regions=config["input"]["genome"]["targets"],
+    output:
+        vcf=config["bcftools"]["dir"] + "{sample}.vcf.gz",
+    params:
+        threads=config["extra"]["threads"],
+        mpileup=config["bcftools"]["mpileup"],
+        call=config["bcftools"]["call"],
+        filter=config["bcftools"]["filter"],
+    log:
+        mpileup=config["bcftools"]["dir"] + "log/mpileup/{sample}.log",
+        call=config["bcftools"]["dir"] + "log/call/{sample}.log",
+        filter=config["bcftools"]["dir"] + "log/filter/{sample}.log",
+        view=config["bcftools"]["dir"] + "log/view/{sample}.log",
+    conda:
+        "envs/bcftools.yaml"
+    shell:
+        """
+        echo "##############################################"
+        echo "------ Running BCFtools Variant Calling ------"
+        echo "##############################################"
+        
+        bcftools mpileup \
+            --threads {params.threads} \
+            --regions-file {input.regions} \
+            {params.mpileup} \
+            --fasta-ref {input.genome} \
+            {input.bam} \
+            2> {log.mpileup} |\
+        bcftools call \
+            --threads {params.threads} \
+            {params.call} \
+            2> {log.call} |\
+        bcftools filter \
+            --threads {params.threads} \
+            {params.filter} \
+            2> {log.filter} |\
+        bcftools view \
+            --threads {params.threads} \
+            --output-type z \
+            --output {output.vcf} \
+            2> {log.view}
+        """
+
+
+# snpEff - variant annotation and functional effect prediction
+# *********************************************************************
+rule snpEff_annotate:
+    input:
+        vcf=rules.bcftools_variant_calling.output.vcf,
+    output:
+        vcf=config["snpEff"]["dir"] + "{sample}.vcf.gz",
+    params:
+        config=config["snpEff"]["config"],
+        extra=config["snpEff"]["extra"],
+        database=config["snpEff"]["database"],
+    log:
+        snpEff=config["snpEff"]["dir"] + "log/{sample}.log",
+    conda:
+        "envs/snpEff.yaml"
+    shell:
+        """
+        echo "##############################################"
+        echo "--------------- Running SnpEff ---------------"
+        echo "##############################################"
+
+        snpEff ann \
+            {params.extra} \
+            -config {params.config} \
+            {params.database} \
+            {input.vcf} | bgzip -c > {output.vcf} \
+            2> {log.snpEff}
+        """
+
+
+# snpSift - extract vcf fields and calculate within-sample allele frequencies
+# *********************************************************************
+rule snpsift_extract:
+    input:
+        rules.snpEff_annotate.output.vcf,
+    output:
+        tsv=config["snpSift"]["dir"] + "{sample}.allele.tsv",
+    params:
+        fields=config["snpSift"]["fields"],
+    log:
+        config["snpSift"]["dir"] + "log/snpSift/{sample}.log",
+    conda:
+        "envs/snpEff.yaml"
+    shell:
+        """
+        snpSift extractFields {input} \
+            {params.fields} |\
+        awk '
+            BEGIN {{ FS=OFS="\\t" }}
+            NR == 1 {{
+                allelFreq1 = "AF_REF"
+                allelFreq2 = "AF_ALT"
+            }}
+            NR > 1 {{
+                split($13,a,",")
+                sum = a[1] + a[2]
+                if ( sum ) {{
+                    allelFreq1 = a[1] / sum
+                    allelFreq2 = a[2] / sum
+                }}
+                else {{
+                    allelFreq1 = 0
+                    allelFreq2 = 0
+                }}
+            }}
+            {{ print $0, allelFreq1, allelFreq2 }}' /dev/stdin |\
+        sed -e 's/ANN\\[\\*\\]\\.\\|GEN\\[\\*\\]\\.//g' > {output.tsv}
+        """

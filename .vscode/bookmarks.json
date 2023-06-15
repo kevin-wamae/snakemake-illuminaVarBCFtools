@@ -1,0 +1,49 @@
+{
+	"files": [
+		{
+			"path": "workflow/Snakefile",
+			"bookmarks": [
+				{
+					"line": 65,
+					"column": 10,
+					"label": ""
+				},
+				{
+					"line": 94,
+					"column": 10,
+					"label": ""
+				},
+				{
+					"line": 137,
+					"column": 8,
+					"label": ""
+				},
+				{
+					"line": 158,
+					"column": 12,
+					"label": ""
+				},
+				{
+					"line": 214,
+					"column": 17,
+					"label": ""
+				},
+				{
+					"line": 242,
+					"column": 13,
+					"label": ""
+				},
+				{
+					"line": 292,
+					"column": 17,
+					"label": ""
+				},
+				{
+					"line": 322,
+					"column": 11,
+					"label": ""
+				}
+			]
+		}
+	]
+}

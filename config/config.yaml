@@ -1,0 +1,117 @@
+# ****************************************************************
+#                              DEPENDENCIES
+# ****************************************************************
+extra:
+   threads: 4  # number of threads to use, whenever possible
+
+
+
+# ****************************************************************
+#                              INPUT
+# ****************************************************************
+
+
+# fastq files, adapters and genome files
+input:
+   fastq: input/fastq/                                       # raw fastq files
+   genome:
+      fasta: output/1_annotation_db/genomes/P.falciparum.fa  # local copy of genome fasta file
+      gff: output/1_annotation_db/P.falciparum/genes.gff     # local copy of genome gff file
+      targets: input/bed/p.falciparum_genes.bed                         # bed file with regions of interest
+      url: https://plasmodb.org/common/downloads/release-51/Pfalciparum3D7/fasta/data/PlasmoDB-51_Pfalciparum3D7_Genome.fasta  # url to download genome fasta file
+   
+
+
+# ****************************************************************
+#                              OUTPUT
+# ****************************************************************
+
+gather_genome_data:
+   fasta: output/2_genome/genome.fa          # genome fasta file, copied from snpeff database
+   fasta_idx: output/2_genome/genome.fa.fai  # genome fasta index file
+   gff: output/2_genome/annotations.gff      # genome gff file, copied from snpeff database
+   bed: output/2_genome/annotations.bed      # genome bed file
+
+
+
+# trim_illumina_adapters - trim illumina adapters
+# ----------------------------------------------------------------
+fastp:
+   dir: output/3_trimmed_fastq/      # output directory
+   min_len: 150                      # minimum read length after trimming
+
+
+
+# create_genome_index - generate index files for genome mapping
+# ----------------------------------------------------------------
+bwa:
+   dir: output/4_aligned_bam/                           # output directory
+   genome_index: output/4_aligned_bam/genomeIndex/genome  # genome index prefix
+   mapping_qual: 60                                     # minimum mapping quality
+   exclude_flag: "0x104"                                # exclude unnmapped and secondary alignments reads (i.e 0x4 + 0x100)
+
+
+
+# mapping_qual_stats - get mapping qual statistics
+# ----------------------------------------------------------------
+mapping_stats:                         
+   dir: output/5_map_qual_stats/  # output directory
+
+
+
+# variant calling - call variants against reference genome
+# ----------------------------------------------------------------
+bcftools:
+   dir: output/6_vcf_files/  # output directory
+   mpileup:
+      - "--annotate FORMAT/AD,FORMAT/DP"
+      - "--count-orphans"
+   call:
+      - "--multiallelic-caller"
+      - "--ploidy 2"
+      - "--variants-only"
+   filter:
+      - "--include 'QUAL>=15 && MQ>=20 && FORMAT/DP>=8'"
+
+
+
+# annotate_variants - annotate variants in vcf file
+# ----------------------------------------------------------------
+snpEff:
+   dir: output/7_variant_annotation/  # output directory
+   config: .snpEff.config             # snpeff config file
+   database: P.falciparum             # snpeff database
+   extra:                             # extra options to pass to snpeff
+      - "-no-downstream"
+      - "-no-intergenic"
+      - "-no-intron"
+      - "-no-upstream"
+      - "-no-utr"
+      - "-hgvs1LetterAa"
+      - "-noLof"
+      - "-noShiftHgvs"
+      - "-noMotif"
+      - "-no SPLICE_SITE_REGION"
+      - "-noInteraction"
+      - "-noStats"
+
+
+
+# extract_variants - extract variants from vcf file
+# ----------------------------------------------------------------
+snpSift:
+   dir: output/8_extracted_variants/  # output directory
+   fields:
+      - "CHROM"
+      - "POS"
+      - "REF"
+      - "ALT"
+      - "'ANN[*].ALLELE'"
+      - "'ANN[*].EFFECT'"
+      - "'ANN[*].GENEID'"
+      - "'ANN[*].HGVS_C'"
+      - "'ANN[*].HGVS_P'"
+      - "'ANN[*].CDS_POS'"
+      - "'ANN[*].AA_POS'"
+      - "'GEN[*].GT'"
+      - "'GEN[*].AD'"

@@ -1,0 +1,6 @@
+channels:
+  - bioconda
+dependencies:
+  - bioconda::bwa>=0.7.17
+  - bioconda::samblaster=0.1.26
+  - bioconda::samtools=1.16.1

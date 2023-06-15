@@ -1,0 +1,5 @@
+name: snakemake
+channels:
+  - bioconda
+dependencies:
+  - bioconda::snakemake>=7.22.0

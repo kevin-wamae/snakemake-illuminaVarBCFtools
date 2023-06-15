@@ -1,0 +1,5 @@
+channels:
+  - bioconda
+dependencies:
+  - bioconda::samtools=1.17
+  - bioconda::bedops=2.4.41
