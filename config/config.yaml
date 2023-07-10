@@ -47,8 +47,6 @@ fastp:
 bwa:
    dir: output/4_aligned_bam/                           # output directory
    genome_index: output/4_aligned_bam/genomeIndex/genome  # genome index prefix
-   mapping_qual: 60                                     # minimum mapping quality
-   exclude_flag: "0x104"                                # exclude unnmapped and secondary alignments reads (i.e 0x4 + 0x100)
 
 
 

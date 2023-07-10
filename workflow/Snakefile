@@ -164,8 +164,6 @@ rule bwa_map_reads:
     params:
         threads=config["extra"]["threads"],
         read_groups=r"-R '@RG\tID:{sample}\tSM:{sample}'",
-        mapping_qual=config["bwa"]["mapping_qual"],
-        exclude_flag=config["bwa"]["exclude_flag"],
     log:
         bwa=config["bwa"]["dir"] + "log/bwa.mem/{sample}.log",
         samblaster=config["bwa"]["dir"] + "log/samblaster/{sample}.log",
