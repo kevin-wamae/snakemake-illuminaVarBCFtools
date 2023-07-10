@@ -1,7 +1,20 @@
 # **Snakemake workflow: variant calling using the BCFtools**
 
+![GitHub release](https://img.shields.io/github/v/release/kevin-wamae/variant-calling-with-Snakemake-and-BCFtools)
+![GitHub](https://img.shields.io/github/license/kevin-wamae/variant-calling-with-Snakemake-and-BCFtools?color=maroon)
 [![conda](https://img.shields.io/badge/conda->=23.1.0-brightgreen.svg)](https://github.com/conda/conda)
 [![snakemake](https://img.shields.io/badge/snakemake-7.24.2-brightgreen.svg)](https://snakemake.readthedocs.io)
+
+
+
+[![fastp](https://img.shields.io/badge/fastp-0.23.4-red.svg)](https://github.com/OpenGene/fastp)
+[![bwa](https://img.shields.io/badge/bwa-0.7.17-red.svg)](https://github.com/lh3/bwa)
+[![samblaster](https://img.shields.io/badge/samblaster-0.1.26-red.svg)](https://github.com/GregoryFaust/samblaster)
+[![samtools](https://img.shields.io/badge/samtools-1.17-red.svg)](https://github.com/samtools/samtools)
+[![bcftools](https://img.shields.io/badge/bcftools-1.17-red.svg)](https://github.com/samtools/bcftools)
+[![snpeff](https://img.shields.io/badge/snpeff-5.1-red.svg)](http://pcingola.github.io/SnpEff/)
+[![snpsift](https://img.shields.io/badge/snpeff-5.1-red.svg)](http://pcingola.github.io/SnpEff/)
+[![htslib](https://img.shields.io/badge/htslib-1.17-red.svg)]([http://pcingola.github.io/SnpEff/](https://github.com/samtools/htslib))
 
 ---
 
