@@ -103,6 +103,8 @@ rule trim_fastq_files:
         html=config["fastp"]["dir"] + "{sample}.html",
     params:
         threads=config["extra"]["threads"],
+        phred_qual=config["fastp"]["phred_qual"],
+        mean_qual=config["fastp"]["mean_qual"],
         min_len=config["fastp"]["min_len"],
     log:
         config["fastp"]["dir"] + "log/{sample}.log",
@@ -118,7 +120,8 @@ rule trim_fastq_files:
             --thread {params.threads} \
             --detect_adapter_for_pe \
             --qualified_quality_phred 20 \
-            --cut_tail --cut_tail_mean_quality 20 \
+            --cut_tail \
+            --cut_tail_mean_quality 20 \
             --length_required {params.min_len} \
             --in1 {input.in1} \
             --in2 {input.in2} \

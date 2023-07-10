@@ -38,7 +38,9 @@ gather_genome_data:
 # ----------------------------------------------------------------
 fastp:
    dir: output/3_trimmed_fastq/      # output directory
-   min_len: 150                      # minimum read length after trimming
+   phred_qual: 15                    # phred quality score {default: 15}
+   mean_qual: 20                     # mean quality score {default: 20}
+   min_len: 15                       # minimum read length after trimming {default: 15}
 
 
 
@@ -62,14 +64,13 @@ mapping_stats:
 bcftools:
    dir: output/6_vcf_files/  # output directory
    mpileup:
-      - "--annotate FORMAT/AD,FORMAT/DP"
       - "--count-orphans"
+      - "--annotate FORMAT/AD,FORMAT/DP"
    call:
       - "--multiallelic-caller"
-      - "--ploidy 2"
       - "--variants-only"
    filter:
-      - "--include 'QUAL>=20 && MQ>=60 && FORMAT/DP>=10'"
+      - "--include 'QUAL>=20 && MQ>=20 && FORMAT/DP>=10'"
 
 
 
