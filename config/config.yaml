@@ -2,7 +2,7 @@
 #                              DEPENDENCIES
 # ****************************************************************
 extra:
-   threads: 4  # number of threads to use, whenever possible
+   threads: 2  # number of threads to use, whenever possible
 
 
 
@@ -71,7 +71,7 @@ bcftools:
       - "--ploidy 2"
       - "--variants-only"
    filter:
-      - "--include 'QUAL>=15 && MQ>=20 && FORMAT/DP>=8'"
+      - "--include 'QUAL>=20 && MQ>=60 && FORMAT/DP>=10'"
 
 
 
