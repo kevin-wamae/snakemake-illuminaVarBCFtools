@@ -154,7 +154,8 @@ rule bwa_index_genome:
         """
 
 
-# bwa/samtools/sambamba: [-a bwtsw|is]
+# bwa/samtools/sambamba
+# - map reads to reference genome, mark duplicates, fixmate, sort, index
 # *********************************************************************
 rule bwa_map_reads:
     input:
@@ -180,7 +181,7 @@ rule bwa_map_reads:
     shell:
         """
         echo "##############################################"
-        echo "- Running BWA MEM and Samtools (Sort & Index -"
+        echo "-------- Running BWA Mem and Samtools --------"
         echo "##############################################"
 
         bwa mem -M \
@@ -285,6 +286,8 @@ rule bcftools_variant_calling:
             --output-type z \
             --output {output.vcf} \
             2> {log.view}
+        
+        tabix -p vcf {output.vcf}
         """
 
 
@@ -315,6 +318,8 @@ rule snpEff_annotate:
             {params.database} \
             {input.vcf} | bgzip -c > {output.vcf} \
             2> {log.snpEff}
+        
+        tabix -p vcf {output.vcf}
         """
 
 
@@ -333,6 +338,10 @@ rule snpsift_extract:
         "envs/snpEff.yaml"
     shell:
         """
+        echo "##############################################"
+        echo "----------- Running SnpSift and AWK ----------"
+        echo "##############################################"
+
         snpSift extractFields {input} \
             {params.fields} |\
         awk '
