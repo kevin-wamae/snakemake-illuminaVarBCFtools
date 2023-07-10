@@ -184,7 +184,6 @@ rule bwa_map_reads:
             {input.fastqR1} {input.fastqR2} \
             2> {log.bwa} |\
         samblaster -M \
-            --removeDups \
             --addMateTags \
             2> {log.samblaster} |\
         samtools fixmate \
