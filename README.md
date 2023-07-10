@@ -1,6 +1,6 @@
 # **Snakemake workflow: variant calling using the BCFtools**
 
-![GitHub release](https://img.shields.io/github/v/release/kevin-wamae/variant-calling-with-Snakemake-and-BCFtools)
+![release](https://img.shields.io/github/v/release/kevin-wamae/variant-calling-with-Snakemake-and-BCFtools)
 ![GitHub](https://img.shields.io/github/license/kevin-wamae/variant-calling-with-Snakemake-and-BCFtools?color=maroon)
 [![conda](https://img.shields.io/badge/conda->=23.1.0-brightgreen.svg)](https://github.com/conda/conda)
 [![snakemake](https://img.shields.io/badge/snakemake-7.24.2-brightgreen.svg)](https://snakemake.readthedocs.io)
