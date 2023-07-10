@@ -1,5 +1,6 @@
-name: snakemake
+name: variant-calling-bcftools
 channels:
   - bioconda
 dependencies:
   - bioconda::snakemake>=7.22.0
+  - bioconda::snpeff=5.1
