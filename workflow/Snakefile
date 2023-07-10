@@ -17,7 +17,7 @@ configfile: "config/config.yaml"
 (SAMPLES,) = glob_wildcards(config["input"]["fastq"] + "{sample}_R1.fastq.gz")
 
 
-# a list of all output files
+# step 1: compile a list of all output files
 # *********************************************************************
 rule all:
     input:
@@ -61,7 +61,7 @@ rule all:
         # expand(config["snpSift"]["dir"] + "{sample}.allele.freq.tsv", sample=SAMPLES),
 
 
-# genome data - download genome data
+# step 2: genome data - download genome data
 # *********************************************************************
 rule gather_genome_data:
     input:
@@ -90,7 +90,7 @@ rule gather_genome_data:
         """
 
 
-# fastp - clip illumina adapters, paired end mode
+# step 3: fastp - FASTQ data pre-processing (paired end mode)
 # *********************************************************************
 rule trim_fastq_files:
     input:
@@ -128,12 +128,7 @@ rule trim_fastq_files:
             """
 
 
-# #####################################################################
-#                      BCFTOOLS VARIANT CALLING
-# # ###################################################################
-
-
-# bwa - generate bwa genome-index files
+# step 4: bwa - generate bwa genome-index files
 # *********************************************************************
 rule bwa_index_genome:
     input:
@@ -154,7 +149,7 @@ rule bwa_index_genome:
         """
 
 
-# bwa/samtools/sambamba
+# step 5: bwa/samtools/sambamba
 # - map reads to reference genome, mark duplicates, fixmate, sort, index
 # *********************************************************************
 rule bwa_map_reads:
@@ -209,7 +204,7 @@ rule bwa_map_reads:
         """
 
 
-# get mapping-quality statistics from BAM file
+# step 6: get mapping-quality statistics from BAM file
 # - samtools idxstats - counts for 13 categories based primarily on bit flags in the FLAG field
 # - samtools flagstats - stats for the bam index file
 # *********************************************************************
@@ -239,7 +234,7 @@ rule samtools_mapping_stats:
         """
 
 
-# bcftools - variant calling
+# step 7: bcftools - variant calling
 # *********************************************************************
 rule bcftools_variant_calling:
     input:
@@ -291,7 +286,7 @@ rule bcftools_variant_calling:
         """
 
 
-# snpEff - variant annotation and functional effect prediction
+# step 8: snpEff - variant annotation and functional effect prediction
 # *********************************************************************
 rule snpEff_annotate:
     input:
@@ -323,7 +318,7 @@ rule snpEff_annotate:
         """
 
 
-# snpSift - extract vcf fields and calculate within-sample allele frequencies
+# step 9: snpSift - extract vcf fields and calculate within-sample allele frequencies
 # *********************************************************************
 rule snpsift_extract:
     input:
