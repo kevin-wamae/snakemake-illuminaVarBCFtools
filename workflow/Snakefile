@@ -300,7 +300,7 @@ rule snpEff_annotate:
     log:
         snpEff=config["snpEff"]["dir"] + "log/{sample}.log",
     conda:
-        "envs/snpEff.yaml"
+        "envs/snpeff.yaml"
     shell:
         """
         echo "##############################################"
@@ -330,7 +330,7 @@ rule snpsift_extract:
     log:
         config["snpSift"]["dir"] + "log/snpSift/{sample}.log",
     conda:
-        "envs/snpEff.yaml"
+        "envs/snpeff.yaml"
     shell:
         """
         echo "##############################################"
