@@ -13,7 +13,7 @@
 [![samtools](https://img.shields.io/badge/samtools-1.17-red.svg)](https://github.com/samtools/samtools)
 [![bcftools](https://img.shields.io/badge/bcftools-1.17-red.svg)](https://github.com/samtools/bcftools)
 [![snpeff](https://img.shields.io/badge/snpeff-5.1-red.svg)](http://pcingola.github.io/SnpEff/)
-[![snpsift](https://img.shields.io/badge/snpeff-5.1-red.svg)](http://pcingola.github.io/SnpEff/)
+[![snpsift](https://img.shields.io/badge/snpsift-5.1-red.svg)](http://pcingola.github.io/SnpEff/)
 [![htslib](https://img.shields.io/badge/htslib-1.17-red.svg)]([http://pcingola.github.io/SnpEff/](https://github.com/samtools/htslib))
 
 ---
