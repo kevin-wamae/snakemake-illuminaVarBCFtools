@@ -23,6 +23,3 @@ output*
 
 # RStudio files
 .Rproj.user
-
-# scripts
-*.sh
