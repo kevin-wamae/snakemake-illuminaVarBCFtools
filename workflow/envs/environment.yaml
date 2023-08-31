@@ -1,4 +1,4 @@
-name: variant-calling-bcftools
+name: snakemake
 channels:
   - bioconda
 dependencies:

@@ -124,12 +124,12 @@
 ## **Running the analysis**
 After navigating into the root directory of the project, run the analysis by executing the following commands in your terminal to:
 
-1. Create a conda analysis environment by running the command below in your terminal. This will create a conda environment named `variant-calling-bcftools` and install [Snakemake](https://snakemake.readthedocs.io/en/stable/) and [SnpEff](https://pcingola.github.io/SnpEff/se_introduction/) in the environment:
+1. Create a conda analysis environment by running the command below in your terminal. This will create a conda environment named `snakemake` and install [Snakemake](https://snakemake.readthedocs.io/en/stable/) and [SnpEff](https://pcingola.github.io/SnpEff/se_introduction/) in the environment:
     - `conda env create --file workflow/envs/environment.yaml`
     - _**_Note:_** This only needs to be done once.
 
 2. Activate the conda environment by running the command below in your terminal:
-    - `conda activate variant-calling-bcftools`
+    - `conda activate snakemake`
     - **_Note:_** This needs to be done every time you exit and restart your terminal and want re-run this pipeline
 
 3. Execute the shell script below to create the SnpEff database for variant annotation. This will download the _P. falciparum_ genome data from [PlasmoDB](https://plasmodb.org/) and create a database in the **output/** directory:
@@ -146,7 +146,7 @@ After navigating into the root directory of the project, run the analysis by exe
 5. Once the analysis is complete, look through **output/** directory to view the results of the analysis
 
 6. Finally, you can deactivate the variant calling conda environment if you are done with the analysis by running the following command:
-     - `conda deactivate variant-calling-bcftools`
+     - `conda deactivate snakemake`
 
 ---
 
