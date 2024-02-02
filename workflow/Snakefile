@@ -14,7 +14,7 @@ configfile: "config/config.yaml"
 # - If not, they might have the SampleName_S1_L001_R1_001.fastq.gz and SampleName_S1_L001_R2_001.fastq.gz format
 # - In this case, rename the files running the following command in your terminal, at the top level of the project:
 # python3 workflow/rename_fastq_files.py
-(SAMPLES,) = glob_wildcards(config["input"]["fastq"] + "{sample}_R1.fastq")
+(SAMPLES,) = glob_wildcards(config["input"]["fastq"] + "{sample}_R1.fastq.gz")
 
 
 # step 1: compile a list of all output files
@@ -81,7 +81,7 @@ rule gather_genome_data:
         echo "##############################################"
         echo "--- Gathering Genome Files (FASTA/GFF/BED) ---"
         echo "##############################################"
-        
+
         cp -f {input.genome} {output.genome}
 
         samtools faidx {output.genome}
@@ -94,8 +94,8 @@ rule gather_genome_data:
 # *********************************************************************
 rule trim_fastq_files:
     input:
-        in1=config["input"]["fastq"] + "{sample}_R1.fastq",
-        in2=config["input"]["fastq"] + "{sample}_R2.fastq",
+        in1=config["input"]["fastq"] + "{sample}_R1.fastq.gz",
+        in2=config["input"]["fastq"] + "{sample}_R2.fastq.gz",
     output:
         out1=config["fastp"]["dir"] + "{sample}_R1.fastq.gz",
         out2=config["fastp"]["dir"] + "{sample}_R2.fastq.gz",
@@ -199,7 +199,7 @@ rule bwa_map_reads:
             --threads {params.threads} \
             -o {output.bam} |\
             2> {log.sort}
-        
+
         samtools index {output.bam} {output.index}
         """
 
@@ -223,7 +223,7 @@ rule samtools_mapping_stats:
         echo "##############################################"
         echo "---- Running Samtools idxstats & flagstats ----"
         echo "##############################################"
-        
+
         samtools idxstats \
             --threads {params.threads} \
             {input.bam} > {output.idxstats}
@@ -260,7 +260,7 @@ rule bcftools_variant_calling:
         echo "##############################################"
         echo "------ Running BCFtools Variant Calling ------"
         echo "##############################################"
-        
+
         bcftools mpileup \
             --threads {params.threads} \
             --regions-file {input.regions} \
@@ -281,7 +281,7 @@ rule bcftools_variant_calling:
             --output-type z \
             --output {output.vcf} \
             2> {log.view}
-        
+
         tabix -p vcf {output.vcf}
         """
 
@@ -313,7 +313,7 @@ rule snpEff_annotate:
             {params.database} \
             {input.vcf} | bgzip -c > {output.vcf} \
             2> {log.snpEff}
-        
+
         tabix -p vcf {output.vcf}
         """
 
