@@ -1,7 +1,7 @@
 # **Snakemake workflow: variant calling using the BCFtools**
 
-![release](https://img.shields.io/github/v/release/kevin-wamae/variant-calling-with-Snakemake-and-BCFtools)
-![GitHub](https://img.shields.io/github/license/kevin-wamae/variant-calling-with-Snakemake-and-BCFtools?color=maroon)
+![release](https://img.shields.io/github/v/release/kevin-wamae/snakemake-illuminaVarBCFtools)
+![GitHub](https://img.shields.io/github/license/kevin-wamae/snakemake-illuminaVarBCFtools?color=maroon)
 [![conda](https://img.shields.io/badge/conda->=23.1.0-brightgreen.svg)](https://github.com/conda/conda)
 [![snakemake](https://img.shields.io/badge/snakemake-7.24.2-brightgreen.svg)](https://snakemake.readthedocs.io)
 
@@ -66,9 +66,9 @@
   - [Linux](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html)
   - [MacOS](https://docs.conda.io/projects/conda/en/latest/user-guide/install/macos.html)
 - Clone this project using the following command in your terminal:
-  - `git clone https://github.com/kevin-wamae/variant-calling-with-Snakemake-and-BCFtools.git`
+  - `git clone https://github.com/kevin-wamae/snakemake-illuminaVarBCFtools.git`
 - Type the following command in your terminal to navigate into the cloned directory using the command below. This will be the root directory of the project:
-  - `cd variant-calling-with-Snakemake-and-BCFtools`
+  - `cd snakemake-illuminaVarBCFtools`
   
 - **_Note: All subsequent commands should be run from the root directory of this project. However, users can modify the scripts to their liking_**
  
@@ -152,6 +152,6 @@ After navigating into the root directory of the project, run the analysis by exe
 
 ## **Feedback and Issues**
 
-Report any issues or bugs by openning an issue [here](https://github.com/kevin-wamae/variant-calling-with-Snakemake-and-BCFtools/issues) or contact me via email at **wamaekevin[at]gmail.com**
+Report any issues or bugs by openning an issue [here](https://github.com/kevin-wamae/snakemake-illuminaVarBCFtools/issues) or contact me via email at **wamaekevin[at]gmail.com**
   
  
