@@ -2,5 +2,5 @@ name: snakemake
 channels:
   - bioconda
 dependencies:
-  - bioconda::snakemake>=7.22.0
-  - bioconda::snpeff=5.1
+  - bioconda::snakemake<8
+  - bioconda::snpeff>=5.1
