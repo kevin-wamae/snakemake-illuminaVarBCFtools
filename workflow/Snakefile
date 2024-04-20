@@ -101,7 +101,7 @@ rule trim_fastq_files:
         json=config["fastp"]["dir"] + "{sample}.json",
         html=config["fastp"]["dir"] + "{sample}.html",
     params:
-        threads=config["extra"]["threads"],
+        threads=config["threads"],
         phred_qual=config["fastp"]["phred_qual"],
         mean_qual=config["fastp"]["mean_qual"],
         min_len=config["fastp"]["min_len"],
@@ -152,7 +152,7 @@ rule bwa_index_genome:
 
 
 # step 5: bwa/samtools/sambamba
-# - map reads to reference genome, mark duplicates, fixmate, sort, index
+# - map reads to reference genome, mark duplicates (optional), fixmate, sort, index
 # *********************************************************************
 rule bwa_map_reads:
     input:
@@ -164,13 +164,14 @@ rule bwa_map_reads:
         bam=config["bwa"]["dir"] + "{sample}.bam",
         index=config["bwa"]["dir"] + "{sample}.bam.bai",
     params:
-        threads=config["extra"]["threads"],
+        threads=config["threads"],
         read_groups=r"-R '@RG\tID:{sample}\tSM:{sample}'",
+        markduplicates=config["markduplicates"],
     log:
         bwa=config["bwa"]["dir"] + "log/bwa.mem/{sample}.log",
         samblaster=config["bwa"]["dir"] + "log/samblaster/{sample}.log",
         fixmate=config["bwa"]["dir"] + "log/samtools/{sample}.fixmate.log",
-        sort=config["bwa"]["dir"] + "log/samtools/{sample}.fixmate.log",
+        sort=config["bwa"]["dir"] + "log/samtools/{sample}.sort.log",
     conda:
         "envs/bwa.yaml"
     shell:
@@ -179,27 +180,48 @@ rule bwa_map_reads:
         echo "-------- Running BWA Mem and Samtools --------"
         echo "##############################################"
 
-        bwa mem -M \
-            -t {params.threads} \
-            {params.read_groups} \
-            {input.genome_index} \
-            {input.fastqR1} {input.fastqR2} \
-            2> {log.bwa} |\
-        samblaster -M \
-            --addMateTags \
-            2> {log.samblaster} |\
-        samtools fixmate \
-            --threads {params.threads} \
-            --output-fmt sam \
-            /dev/stdin \
-            /dev/stdout \
-            2> {log.fixmate} |\
-        samtools sort \
-            --threads {params.threads} \
-            -o {output.bam} |\
-            2> {log.sort}
+        if [[ "{params.markduplicates}" == "True" ]]; then
+            bwa mem -M \
+                -t {params.threads} \
+                {params.read_groups} \
+                {input.genome_index} \
+                {input.fastqR1} {input.fastqR2} \
+                2> {log.bwa} |\
+            samblaster -M \
+                --addMateTags \
+                2> {log.samblaster} |\
+            samtools fixmate \
+                --threads {params.threads} \
+                --output-fmt sam \
+                /dev/stdin \
+                /dev/stdout \
+                2> {log.fixmate} |\
+            samtools sort \
+                --threads {params.threads} \
+                -o {output.bam} |\
+                2> {log.sort}
 
-        samtools index {output.bam} {output.index}
+            samtools index {output.bam} {output.index}
+        else
+            bwa mem -M \
+                -t {params.threads} \
+                {params.read_groups} \
+                {input.genome_index} \
+                {input.fastqR1} {input.fastqR2} \
+                2> {log.bwa} |\
+            samtools fixmate \
+                --threads {params.threads} \
+                --output-fmt sam \
+                /dev/stdin \
+                /dev/stdout \
+                2> {log.fixmate} |\
+            samtools sort \
+                --threads {params.threads} \
+                -o {output.bam} |\
+                2> {log.sort}
+
+            samtools index {output.bam} {output.index}
+        fi
         """
 
 
@@ -214,7 +236,7 @@ rule samtools_mapping_stats:
         idxstats=config["mapping_stats"]["dir"] + "{sample}.bam.idxstats.tsv",
         flagstats=config["mapping_stats"]["dir"] + "{sample}.bam.flagstats.tsv",
     params:
-        threads=config["extra"]["threads"],
+        threads=config["threads"],
     conda:
         "envs/samtools.yaml"
     shell:
@@ -243,7 +265,7 @@ rule bcftools_variant_calling:
     output:
         vcf=config["bcftools"]["dir"] + "{sample}.vcf.gz",
     params:
-        threads=config["extra"]["threads"],
+        threads=config["threads"],
         mpileup=config["bcftools"]["mpileup"],
         call=config["bcftools"]["call"],
         filter=config["bcftools"]["filter"],

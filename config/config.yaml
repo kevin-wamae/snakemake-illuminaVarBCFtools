@@ -1,10 +1,9 @@
 # ****************************************************************
 #                              DEPENDENCIES
 # ****************************************************************
-extra:
-   threads: 2  # number of threads to use, whenever possible
+threads: 2             # number of threads to use, whenever possible
 
-
+markduplicates: False  # option to mark duplicates in bam files {alternative: True}
 
 # ****************************************************************
 #                              INPUT
@@ -19,7 +18,7 @@ input:
       gff: output/1_annotation_db/P.falciparum/genes.gff     # local copy of genome gff file
       targets: input/bed/p.falciparum_genes.bed                         # bed file with regions of interest
       url: https://plasmodb.org/common/downloads/release-51/Pfalciparum3D7/fasta/data/PlasmoDB-51_Pfalciparum3D7_Genome.fasta  # url to download genome fasta file
-   
+
 
 
 # ****************************************************************
@@ -54,7 +53,7 @@ bwa:
 
 # mapping_qual_stats - get mapping qual statistics
 # ----------------------------------------------------------------
-mapping_stats:                         
+mapping_stats:
    dir: output/5_map_qual_stats/  # output directory
 
 
@@ -64,8 +63,8 @@ mapping_stats:
 bcftools:
    dir: output/6_vcf_files/  # output directory
    mpileup:
-      - "--count-orphans"
       - "--annotate FORMAT/AD,FORMAT/DP"
+      - "--max-depth 1000000"
    call:
       - "--multiallelic-caller"
       - "--variants-only"
