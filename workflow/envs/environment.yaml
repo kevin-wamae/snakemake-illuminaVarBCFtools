@@ -3,4 +3,5 @@ channels:
   - bioconda
 dependencies:
   - bioconda::snakemake<8
-  - bioconda::snpeff>=5.1
+  - bioconda::snpeff==5.1
+  - bioconda::snpsift==5.1
