@@ -58,7 +58,6 @@ rule all:
         # ------------------------------------
         # snpsift_
         expand(config["snpSift"]["dir"] + "{sample}.allele.tsv", sample=SAMPLES),
-        # expand(config["snpSift"]["dir"] + "{sample}.allele.freq.tsv", sample=SAMPLES),
 
 
 # step 2: genome data - download genome data
@@ -337,7 +336,7 @@ rule snpsift_extract:
         echo "----------- Running SnpSift and AWK ----------"
         echo "##############################################"
 
-        snpSift extractFields {input} \
+        SnpSift extractFields {input} \
             {params.fields} |\
         awk '
             BEGIN {{ FS=OFS="\\t" }}
