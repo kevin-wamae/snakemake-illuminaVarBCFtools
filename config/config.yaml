@@ -16,7 +16,7 @@ input:
    genome:
       fasta: output/1_annotation_db/genomes/P.falciparum.fa  # local copy of genome fasta file
       gff: output/1_annotation_db/P.falciparum/genes.gff     # local copy of genome gff file
-      targets: input/bed/p.falciparum_genes.bed                         # bed file with regions of interest
+      targets: input/bed/p.falciparum_genes.bed              # bed file with regions of interest
       url: https://plasmodb.org/common/downloads/release-51/Pfalciparum3D7/fasta/data/PlasmoDB-51_Pfalciparum3D7_Genome.fasta  # url to download genome fasta file
 
 
@@ -63,13 +63,16 @@ mapping_stats:
 bcftools:
    dir: output/6_vcf_files/  # output directory
    mpileup:
-      - "--annotate FORMAT/AD,FORMAT/DP"
-      - "--max-depth 1000000"
+      - "--annotate FORMAT/AD,FORMAT/DP"                   # add AD and DP to FORMAT field
+      - "--max-depth 1000000"                              # maximum depth for mpileup
    call:
-      - "--multiallelic-caller"
-      - "--variants-only"
+      - "--multiallelic-caller"                            # call multiallelic variants
+      - "--variants-only"                                  # output variant sites only
+   normalize:
+      - "--multiallelics -any"                             # split multiallelic sites into biallelic records (-) or join biallelic sites into multiallelic records (+) {optios: snps|indels|both|any}                                         # reference sequence file
+      - "--check-ref warn"                                 # option for incorrect or missing REF allele is encountered: exit (e), warn (w), exclude (x), or set/fix (s) bad sites
    filter:
-      - "--include 'QUAL>=20 && MQ>=20 && FORMAT/DP>=10'"
+      - "--include 'QUAL>=20 && MQ>=20 && FORMAT/DP>=10'"  # filter variants based on quality, mapping quality and depth
 
 
 

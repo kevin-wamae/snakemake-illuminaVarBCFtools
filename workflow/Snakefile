@@ -268,10 +268,12 @@ rule bcftools_variant_calling:
         threads=config["threads"],
         mpileup=config["bcftools"]["mpileup"],
         call=config["bcftools"]["call"],
+        normalize=config["bcftools"]["normalize"],
         filter=config["bcftools"]["filter"],
     log:
         mpileup=config["bcftools"]["dir"] + "log/mpileup/{sample}.log",
         call=config["bcftools"]["dir"] + "log/call/{sample}.log",
+        normalize=config["bcftools"]["dir"] + "log/normalize/{sample}.log",
         filter=config["bcftools"]["dir"] + "log/filter/{sample}.log",
         view=config["bcftools"]["dir"] + "log/view/{sample}.log",
     conda:
@@ -293,6 +295,10 @@ rule bcftools_variant_calling:
             --threads {params.threads} \
             {params.call} \
             2> {log.call} |\
+        bcftools norm \
+            {params.normalize} \
+            --fasta-ref {input.genome} \
+            2> {log.normalize} |\
         bcftools filter \
             --threads {params.threads} \
             {params.filter} \
